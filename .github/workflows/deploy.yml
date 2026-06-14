@@ -30,6 +30,6 @@ jobs:
         uses: peaceiris/actions-gh-pages@v4
         with:
           personal_token: ${{ secrets.PERSONAL_TOKEN }}
-          external_repository: maliuping/logan.github.io
+          external_repository: maliuping/maliuping.github.io
           publish_branch: main
           publish_dir: ./public
