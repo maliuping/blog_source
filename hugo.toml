@@ -24,7 +24,7 @@ defaultTheme = "auto"
 
 [params.homeInfoParams]
 
-Title = "嵌入式 Linux 与显示子系统"
+Title = "Logan's Lab"
 
 Content = """
 记录 Linux DRM
@@ -58,3 +58,13 @@ identifier = "about"
 name = "关于"
 url = "/about/"
 weight = 40
+
+[[menu.main]]
+identifier = "posts"
+name = "文章"
+url = "/posts/"
+weight = 5
+
+[params]
+ShowToc = true
+TocOpen = true

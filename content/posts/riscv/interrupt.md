@@ -2,6 +2,7 @@
 date = '2026-06-11T00:21:53+08:00'
 draft = false
 title = 'Riscv Interrubt'
+tags = ["RISC-V", "Interrupt"]
 +++
 
 1 中断概念
