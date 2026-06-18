@@ -19,8 +19,9 @@ ShowReadingTime = true
 ShowCodeCopyButtons = true
 ShowPostNavLinks = true
 ShowBreadCrumbs = true
-
 defaultTheme = "auto"
+ShowToc = true
+TocOpen = true
 
 [params.homeInfoParams]
 
@@ -64,7 +65,3 @@ identifier = "posts"
 name = "文章"
 url = "/posts/"
 weight = 5
-
-[params]
-ShowToc = true
-TocOpen = true
