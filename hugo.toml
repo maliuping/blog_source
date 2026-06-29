@@ -1,6 +1,6 @@
 baseURL = "https://maliuping.github.io/"
 languageCode = "zh-cn"
-title = "Logan's blog"
+title = "Logan's Lab"
 
 theme = "PaperMod"
 
@@ -25,15 +25,8 @@ TocOpen = true
 
 [params.homeInfoParams]
 
-Title = "Logan's Lab"
-
 Content = """
-记录 Linux DRM
-DSI
-DisplayPort
-RISC-V
-FPGA
-Driver 开发
+记录生活&工作
 """
 
 [[menu.main]]

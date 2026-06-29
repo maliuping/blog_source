@@ -2,10 +2,9 @@
 title: 关于
 ---
 
-嵌入式 Linux 开发工程师
+一个嵌入式软件工程师，一直在路上...
 
-研究方向：
-
+曾经或未来将涉及的领域：
 - Linux
 - DRM/KMS
 - DSI
@@ -13,3 +12,5 @@ title: 关于
 - RISC-V
 - U-Boot
 - FPGA
+
+Email: maliuping.270@foxmail.com
