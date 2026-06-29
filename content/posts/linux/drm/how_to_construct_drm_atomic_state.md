@@ -1,7 +1,8 @@
 +++
 date = '2026-06-26T17:35:25+08:00'
-draft = true
+draft = false
 title = 'Drm_atomic_state如何构造'
+tags = ["Linux", "DRM"]
 +++
 
 # 1. 用户态数据构造
