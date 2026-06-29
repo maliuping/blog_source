@@ -58,3 +58,12 @@ identifier = "posts"
 name = "文章"
 url = "/posts/"
 weight = 5
+
+[markup]
+  [markup.highlight]
+    codeFences = true
+    guessSyntax = true
+    lineNos = "table" # 显示行号
+    lineNumbersInTable = false
+    noClasses = false
+    style = "github"
