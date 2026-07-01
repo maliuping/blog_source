@@ -30,6 +30,12 @@ Content = """
 """
 
 [[menu.main]]
+identifier = "tools"
+name = "工具"
+url = "/tools/"
+weight = 5
+
+[[menu.main]]
 identifier = "archives"
 name = "归档"
 url = "/archives/"
