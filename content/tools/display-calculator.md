@@ -2,7 +2,7 @@
 date = '2026-07-01T13:40:00+08:00'
 draft = false
 title = 'Display Calculator'
-description = '实时计算显示链路带宽、Lane Rate、时钟与 UI。'
+description = '实时计算显示链路带宽、Lane Rate、时钟、UI 与 DSI video timing。'
 ShowToc = false
 +++
 
@@ -13,7 +13,7 @@ ShowToc = false
       <p class="dc-eyebrow">Display Link Budget</p>
       <h2>Display Calculator</h2>
       <p class="dc-intro">
-        输入像素时钟、BPP、Lane 数和 PPI Width，页面会实时计算总吞吐、每 Lane 速率、推荐 Lane 速率以及相关时钟参数。
+        输入像素时钟、BPP、Lane 数、PPI Width 和水平时序参数，页面会实时计算总吞吐、每 Lane 速率、相关时钟参数以及 DSI video timing。
       </p>
     </div>
     <div class="dc-hero-note">
@@ -47,12 +47,37 @@ ShowToc = false
 
       <label class="dc-field">
         <span>PPI Width</span>
-        <input id="ppi-width" type="number" min="1" step="1" value="16" />
+        <input id="ppi-width" type="number" min="1" step="1" value="8" />
       </label>
 
       <label class="dc-field">
         <span>Margin (%)</span>
-        <input id="margin-percent" type="number" min="0" step="0.1" value="10" />
+        <input id="margin-percent" type="number" min="0" step="0.1" value="20" />
+      </label>
+
+      <div class="dc-input-group">
+        <h4>Horizontal Timing</h4>
+        <p>单位均为 pixel</p>
+      </div>
+
+      <label class="dc-field">
+        <span>H Active</span>
+        <input id="hactive" type="number" min="1" step="1" value="1920" />
+      </label>
+
+      <label class="dc-field">
+        <span>H Sync Width</span>
+        <input id="hsync-width" type="number" min="0" step="1" value="44" />
+      </label>
+
+      <label class="dc-field">
+        <span>H Back Porch</span>
+        <input id="hback-porch" type="number" min="0" step="1" value="148" />
+      </label>
+
+      <label class="dc-field">
+        <span>H Front Porch</span>
+        <input id="hfront-porch" type="number" min="0" step="1" value="88" />
       </label>
     </section>
 
@@ -84,13 +109,33 @@ ShowToc = false
         </article>
 
         <article class="dc-result-card">
-          <span>Byte Clock</span>
+          <span>Line Byte Clock</span>
           <strong id="byte-clock">0 MHz</strong>
         </article>
 
         <article class="dc-result-card">
           <span>UI (ns)</span>
           <strong id="ui-value">0 ns</strong>
+        </article>
+
+        <article class="dc-result-card">
+          <span>HSA Time</span>
+          <strong id="hsa-time">0 cycles</strong>
+        </article>
+
+        <article class="dc-result-card">
+          <span>HBP Time</span>
+          <strong id="hbp-time">0 cycles</strong>
+        </article>
+
+        <article class="dc-result-card">
+          <span>HACT Time</span>
+          <strong id="hact-time">0 cycles</strong>
+        </article>
+
+        <article class="dc-result-card dc-result-card-accent">
+          <span>HLINE Time</span>
+          <strong id="hline-time">0 cycles</strong>
         </article>
       </div>
     </section>
@@ -113,7 +158,7 @@ ShowToc = false
         <code id="formula-recommended">RecommendedLaneRate = LaneRate × (1 + Margin / 100)</code>
       </div>
       <div class="dc-formula-item">
-        <code id="formula-byte-clock">ByteClock = LaneRate / PPIWidth</code>
+        <code id="formula-byte-clock">LineByteClock = LaneRate / PPIWidth</code>
       </div>
       <div class="dc-formula-item">
         <code id="formula-ddr-clock">DDRClock = LaneRate / 2</code>
@@ -121,10 +166,24 @@ ShowToc = false
       <div class="dc-formula-item">
         <code id="formula-ui">UI = 1000 / LaneRate</code>
       </div>
+      <div class="dc-formula-item">
+        <code id="formula-hsa-time">HsaTime = floor(HSyncWidth × LineByteClock / PixelClock)</code>
+      </div>
+      <div class="dc-formula-item">
+        <code id="formula-hbp-time">HbpTime = floor(HBackPorch × LineByteClock / PixelClock)</code>
+      </div>
+      <div class="dc-formula-item">
+        <code id="formula-hact-time">HactTime = floor(HActive × LineByteClock / PixelClock)</code>
+      </div>
+      <div class="dc-formula-item">
+        <code id="formula-hline-time">HlineTime = ceil((HSyncWidth + HBackPorch + HActive + HFrontPorch) × LineByteClock / PixelClock)</code>
+      </div>
     </div>
 
     <p class="dc-footnote">
-      注：<code>DDR Clock</code>、<code>Byte Clock</code> 和 <code>UI</code> 按公式使用 <code>Per Lane Rate</code> 计算；
+      注：<code>DDR Clock</code>、<code>Line Byte Clock</code> 和 <code>UI</code> 按公式使用 <code>Per Lane Rate</code> 计算；
+      <code>HSA/HBP/HACT/HLINE Time</code> 以 <code>Line Byte Clock</code> 换算为 byte clock cycles；
+      DSI D-PHY 下 <code>PPI Width</code> 通常取 <code>8</code>；
       <code>Recommended Lane Rate</code> 额外用于留出 Margin。
     </p>
   </section>
@@ -255,6 +314,27 @@ ShowToc = false
     font-size: 0.95rem;
   }
 
+  .dc-input-group {
+    margin-top: 0.35rem;
+    padding-top: 0.35rem;
+    border-top: 1px solid var(--dc-border);
+  }
+
+  .dc-input-group h4,
+  .dc-input-group p {
+    margin: 0;
+  }
+
+  .dc-input-group h4 {
+    font-size: 0.98rem;
+    margin-bottom: 0.25rem;
+  }
+
+  .dc-input-group p {
+    color: var(--dc-text-soft);
+    font-size: 0.88rem;
+  }
+
   .dc-inputs {
     display: grid;
     gap: 0.95rem;
@@ -374,6 +454,10 @@ ShowToc = false
       laneNumber: document.getElementById("lane-number"),
       ppiWidth: document.getElementById("ppi-width"),
       marginPercent: document.getElementById("margin-percent"),
+      hactive: document.getElementById("hactive"),
+      hsyncWidth: document.getElementById("hsync-width"),
+      hbackPorch: document.getElementById("hback-porch"),
+      hfrontPorch: document.getElementById("hfront-porch"),
     };
 
     const outputs = {
@@ -383,12 +467,20 @@ ShowToc = false
       ddrClock: document.getElementById("ddr-clock"),
       byteClock: document.getElementById("byte-clock"),
       uiValue: document.getElementById("ui-value"),
+      hsaTime: document.getElementById("hsa-time"),
+      hbpTime: document.getElementById("hbp-time"),
+      hactTime: document.getElementById("hact-time"),
+      hlineTime: document.getElementById("hline-time"),
       formulaTotal: document.getElementById("formula-total"),
       formulaLaneRate: document.getElementById("formula-lane-rate"),
       formulaRecommended: document.getElementById("formula-recommended"),
-      formulaByteClock: document.getElementById("formula-byte-clock"),
+      formulaLineByteClock: document.getElementById("formula-byte-clock"),
       formulaDdrClock: document.getElementById("formula-ddr-clock"),
       formulaUi: document.getElementById("formula-ui"),
+      formulaHsaTime: document.getElementById("formula-hsa-time"),
+      formulaHbpTime: document.getElementById("formula-hbp-time"),
+      formulaHactTime: document.getElementById("formula-hact-time"),
+      formulaHlineTime: document.getElementById("formula-hline-time"),
     };
 
     const readValue = (element) => {
@@ -407,6 +499,7 @@ ShowToc = false
     const formatRate = (value) => `${formatNumber(value)} Mbps`;
     const formatClock = (value) => `${formatNumber(value)} MHz`;
     const formatUi = (value) => `${formatNumber(value, 4)} ns`;
+    const formatCycles = (value) => `${formatNumber(value, 0)} cycles`;
 
     const update = () => {
       const pixelClock = readValue(inputs.pixelClock);
@@ -414,6 +507,10 @@ ShowToc = false
       const laneNumber = readValue(inputs.laneNumber);
       const ppiWidth = readValue(inputs.ppiWidth);
       const marginPercent = readValue(inputs.marginPercent);
+      const hactive = readValue(inputs.hactive);
+      const hsyncWidth = readValue(inputs.hsyncWidth);
+      const hbackPorch = readValue(inputs.hbackPorch);
+      const hfrontPorch = readValue(inputs.hfrontPorch);
 
       const totalThroughput = pixelClock * bitsPerPixel;
       const laneRate = safeDiv(totalThroughput, laneNumber);
@@ -421,6 +518,11 @@ ShowToc = false
       const byteClock = safeDiv(laneRate, ppiWidth);
       const ddrClock = laneRate / 2;
       const ui = laneRate > 0 ? 1000 / laneRate : 0;
+      const htotal = hsyncWidth + hbackPorch + hactive + hfrontPorch;
+      const hsaTime = Math.trunc(safeDiv(hsyncWidth * byteClock, pixelClock));
+      const hbpTime = Math.trunc(safeDiv(hbackPorch * byteClock, pixelClock));
+      const hactTime = Math.trunc(safeDiv(hactive * byteClock, pixelClock));
+      const hlineTime = Math.ceil(safeDiv(htotal * byteClock, pixelClock));
 
       outputs.totalThroughput.textContent = formatRate(totalThroughput);
       outputs.perLaneRate.textContent = formatRate(laneRate);
@@ -428,6 +530,10 @@ ShowToc = false
       outputs.byteClock.textContent = formatClock(byteClock);
       outputs.ddrClock.textContent = formatClock(ddrClock);
       outputs.uiValue.textContent = formatUi(ui);
+      outputs.hsaTime.textContent = formatCycles(hsaTime);
+      outputs.hbpTime.textContent = formatCycles(hbpTime);
+      outputs.hactTime.textContent = formatCycles(hactTime);
+      outputs.hlineTime.textContent = formatCycles(hlineTime);
 
       outputs.formulaTotal.textContent =
         `TotalThroughput = ${formatNumber(pixelClock)} × ${formatNumber(bitsPerPixel)} = ${formatNumber(totalThroughput)} Mbps`;
@@ -435,12 +541,20 @@ ShowToc = false
         `LaneRate = ${formatNumber(pixelClock)} × ${formatNumber(bitsPerPixel)} / ${formatNumber(laneNumber)} = ${formatNumber(laneRate)} Mbps`;
       outputs.formulaRecommended.textContent =
         `RecommendedLaneRate = ${formatNumber(laneRate)} × (1 + ${formatNumber(marginPercent)} / 100) = ${formatNumber(recommendedLaneRate)} Mbps`;
-      outputs.formulaByteClock.textContent =
-        `ByteClock = ${formatNumber(laneRate)} / ${formatNumber(ppiWidth)} = ${formatNumber(byteClock)} MHz`;
+      outputs.formulaLineByteClock.textContent =
+        `LineByteClock = ${formatNumber(laneRate)} / ${formatNumber(ppiWidth)} = ${formatNumber(byteClock)} MHz`;
       outputs.formulaDdrClock.textContent =
         `DDRClock = ${formatNumber(laneRate)} / 2 = ${formatNumber(ddrClock)} MHz`;
       outputs.formulaUi.textContent =
         `UI = 1000 / ${formatNumber(laneRate)} = ${formatNumber(ui, 4)} ns`;
+      outputs.formulaHsaTime.textContent =
+        `HsaTime = floor(${formatNumber(hsyncWidth, 0)} × ${formatNumber(byteClock)} / ${formatNumber(pixelClock)}) = ${formatNumber(hsaTime, 0)} cycles`;
+      outputs.formulaHbpTime.textContent =
+        `HbpTime = floor(${formatNumber(hbackPorch, 0)} × ${formatNumber(byteClock)} / ${formatNumber(pixelClock)}) = ${formatNumber(hbpTime, 0)} cycles`;
+      outputs.formulaHactTime.textContent =
+        `HactTime = floor(${formatNumber(hactive, 0)} × ${formatNumber(byteClock)} / ${formatNumber(pixelClock)}) = ${formatNumber(hactTime, 0)} cycles`;
+      outputs.formulaHlineTime.textContent =
+        `HlineTime = ceil((${formatNumber(hsyncWidth, 0)} + ${formatNumber(hbackPorch, 0)} + ${formatNumber(hactive, 0)} + ${formatNumber(hfrontPorch, 0)}) × ${formatNumber(byteClock)} / ${formatNumber(pixelClock)}) = ${formatNumber(hlineTime, 0)} cycles`;
     };
 
     Object.values(inputs).forEach((input) => {
