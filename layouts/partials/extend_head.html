@@ -1,0 +1,163 @@
+<style>
+  pre.mermaid {
+    margin: 1.5rem 0;
+    padding: 1rem;
+    overflow-x: auto;
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    background: var(--entry);
+  }
+
+  pre.mermaid svg {
+    display: block;
+    height: auto;
+    max-width: 100%;
+    margin: 0 auto;
+  }
+</style>
+
+<script type="module">
+  const getMermaidThemeConfig = () => {
+    const isDark = document.documentElement.dataset.theme === "dark";
+
+    if (isDark) {
+      return {
+        theme: "base",
+        themeVariables: {
+          background: "#1d1e20",
+          primaryColor: "#2f2521",
+          primaryBorderColor: "#c98a52",
+          primaryTextColor: "#f2e7da",
+          secondaryColor: "#25303a",
+          secondaryBorderColor: "#7aa2c7",
+          secondaryTextColor: "#e8eef5",
+          tertiaryColor: "#2b2b2f",
+          tertiaryBorderColor: "#8b8f98",
+          tertiaryTextColor: "#e4e7eb",
+          lineColor: "#c98a52",
+          arrowheadColor: "#c98a52",
+          edgeLabelBackground: "#1d1e20",
+          clusterBkg: "#232427",
+          clusterBorder: "#5f636b",
+          mainBkg: "#2f2521",
+          nodeBorder: "#c98a52",
+          defaultLinkColor: "#c98a52",
+          titleColor: "#f2e7da",
+          textColor: "#e4e7eb",
+          labelTextColor: "#e4e7eb",
+          actorBorder: "#c98a52",
+          actorBkg: "#2f2521",
+          actorTextColor: "#f2e7da",
+          signalColor: "#d8dde3",
+          signalTextColor: "#d8dde3",
+          noteBkgColor: "#353028",
+          noteBorderColor: "#c98a52",
+          noteTextColor: "#f2e7da",
+          activationBorderColor: "#c98a52",
+          activationBkgColor: "#4a3527",
+        },
+      };
+    }
+
+    return {
+      theme: "base",
+      themeVariables: {
+        background: "#ffffff",
+        primaryColor: "#f5e6d3",
+        primaryBorderColor: "#b86b2f",
+        primaryTextColor: "#2f221b",
+        secondaryColor: "#e7eef5",
+        secondaryBorderColor: "#5f86ad",
+        secondaryTextColor: "#203040",
+        tertiaryColor: "#f3f1ec",
+        tertiaryBorderColor: "#8d8275",
+        tertiaryTextColor: "#2d2924",
+        lineColor: "#b86b2f",
+        arrowheadColor: "#b86b2f",
+        edgeLabelBackground: "#fffaf4",
+        clusterBkg: "#faf6f0",
+        clusterBorder: "#b7aa9a",
+        mainBkg: "#f5e6d3",
+        nodeBorder: "#b86b2f",
+        defaultLinkColor: "#b86b2f",
+        titleColor: "#2f221b",
+        textColor: "#2f2924",
+        labelTextColor: "#2f2924",
+        actorBorder: "#b86b2f",
+        actorBkg: "#f5e6d3",
+        actorTextColor: "#2f221b",
+        signalColor: "#5b4636",
+        signalTextColor: "#5b4636",
+        noteBkgColor: "#fff4dc",
+        noteBorderColor: "#b86b2f",
+        noteTextColor: "#3b2b20",
+        activationBorderColor: "#b86b2f",
+        activationBkgColor: "#efd0af",
+      },
+    };
+  };
+
+  const collectMermaidBlocks = () => {
+    const blocks = new Set(document.querySelectorAll("pre.mermaid"));
+
+    document.querySelectorAll("pre > code.language-mermaid").forEach((code) => {
+      const pre = code.parentElement;
+      if (!pre) {
+        return;
+      }
+
+      if (!pre.dataset.mermaidSource) {
+        pre.dataset.mermaidSource = code.textContent.trim();
+      }
+
+      pre.classList.add("mermaid");
+      pre.textContent = pre.dataset.mermaidSource;
+      blocks.add(pre);
+    });
+
+    return Array.from(blocks);
+  };
+
+  const renderMermaid = async () => {
+    const blocks = collectMermaidBlocks();
+    if (blocks.length === 0) {
+      return;
+    }
+
+    const { default: mermaid } = await import("https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs");
+    const mermaidTheme = getMermaidThemeConfig();
+
+    blocks.forEach((block) => {
+      if (!block.dataset.mermaidSource) {
+        block.dataset.mermaidSource = block.textContent.trim();
+      }
+
+      block.removeAttribute("data-processed");
+      block.textContent = block.dataset.mermaidSource;
+    });
+
+    mermaid.initialize({
+      startOnLoad: false,
+      securityLevel: "loose",
+      ...mermaidTheme,
+    });
+
+    await mermaid.run({ nodes: blocks });
+  };
+
+  document.addEventListener("DOMContentLoaded", async () => {
+    await renderMermaid();
+
+    const themeToggle = document.getElementById("theme-toggle");
+    if (!themeToggle || themeToggle.dataset.mermaidBound === "true") {
+      return;
+    }
+
+    themeToggle.dataset.mermaidBound = "true";
+    themeToggle.addEventListener("click", () => {
+      window.setTimeout(() => {
+        renderMermaid();
+      }, 0);
+    });
+  }, { once: true });
+</script>
