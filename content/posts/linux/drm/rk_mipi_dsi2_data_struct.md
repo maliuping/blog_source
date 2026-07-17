@@ -127,7 +127,7 @@ bridge 注册：
 | `cdata` | SoC/instance 级别静态描述信息 |
 
 ---
-`grf_regmap` 的作用是？
+`grf_regmap` 的作用是
 
 ### 3.3 所有权
 
@@ -390,3 +390,58 @@ classDiagram
     rockchip_dw_dsi2_chip_data --> dsigrf_reg : points to
 ```
 
+## 11. Inno D-PHY 对象模型
+
+### 11.1 `struct inno_dsidphy`
+
+这是 PHY provider 的运行时对象，由 PHY platform driver 在 probe 中分配并通过 `phy_set_drvdata()` 关联到 `struct phy`。它拥有 PHY 的 MMIO、PLL/时钟、reset、模式状态和当前 `dphy_cfg`。其中 `dphy_cfg` 是 `phy_configure()` 保存的标准单位 timing，不是已经编码好的寄存器值。
+
+### 11.2 `struct inno_video_phy_plat_data`
+
+这是 SoC 变体的静态描述，包含 timing table 指针和表项数量。驱动提供最大 1 GHz、1.5 GHz、2.5 GHz 三组表；运行时按照实际 PLL rate 选择第一个足以覆盖该 rate 的表项。这种设计把芯片模拟参数和通用 PHY 状态分离。
+
+### 11.3 `struct inno_mipi_dphy_timing`
+
+表项保存 Inno 硬件所需的速率相关参数，包含 `lpx`、`hs_prepare`、clock/data lane 的 `hs_zero` 以及 `hs_trail` 等字段。`clk_pre`、`clk_post`、`hs_exit`、`ta_go` 等则来自通用 `phy_configure_opts_mipi_dphy`，在 `inno_dsidphy_mipi_mode_enable()` 中结合 byte clock 或 escape clock 换算。
+
+关系可以概括为：
+
+```mermaid
+classDiagram
+    class phy_configure_opts_mipi_dphy {
+        +lpx
+        +hs_prepare
+        +hs_zero
+        +hs_trail
+        +hs_exit
+        +clk_pre
+        +clk_post
+        +ta_go
+        +ta_sure
+        +ta_wait
+    }
+    class inno_dsidphy {
+        +dphy_cfg
+        +pll
+        +pdata
+    }
+    class inno_video_phy_plat_data {
+        +timing_table
+        +num_timings
+    }
+    class inno_mipi_dphy_timing {
+        +rate
+        +lpx
+        +hs_prepare
+        +clk_lane_hs_zero
+        +data_lane_hs_zero
+        +hs_trail
+    }
+    inno_dsidphy --> phy_configure_opts_mipi_dphy : stores
+    inno_dsidphy --> inno_video_phy_plat_data : selects
+    inno_video_phy_plat_data --> inno_mipi_dphy_timing : table
+```
+
+### 11.4 生命周期与所有权
+
+DSI2 glue 持有一个 `struct phy *` 引用和一份 `phy_opts`；Inno provider 持有自己的 `struct inno_dsidphy`。`phy_configure()` 只更新 provider 状态，`phy_power_on()` 才消费该状态并写硬件。两者之间通过 PHY framework 解耦，generic DSI2 core 不直接持有 `inno_dsidphy`。

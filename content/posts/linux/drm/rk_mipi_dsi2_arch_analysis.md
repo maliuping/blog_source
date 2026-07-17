@@ -155,6 +155,7 @@ Rockchip glue 并没有在 platform probe 阶段创建 encoder。
 这里需要确认 `dw_mipi_dsi2_rockchip_host_attach` 被谁调用了？
 在 `dw_mipi_dsi2_host_attach()` 中，调用了平台 `host_ops->attach()`
 
+
 ## 4.4 PHY 仍是外部平台责任
 
 generic core 需要知道：
@@ -404,3 +405,37 @@ s->output_mode = ROCKCHIP_OUT_MODE_P666; 和 s->bus_format 的区别是什么？
 
 这说明当前版本依赖轮询和同步命令路径，错误处理偏保守简化。
 
+## 10. PHY 三层职责边界
+
+```mermaid
+flowchart LR
+    DRM[DRM atomic / bridge] --> CORE[dw-mipi-dsi2.c\nDWC host registers]
+    CORE --> GLUE[dw-mipi-dsi2-rockchip.c\nrate and timing translation]
+    GLUE --> FRAMEWORK[Linux PHY framework\nset_mode/configure/power_on]
+    FRAMEWORK --> INNO[phy-rockchip-inno-dsidphy.c\nPLL, D-PHY registers, lanes]
+```
+
+把 PHY 加入后，实际架构是三层协作：
+
+- `dw-mipi-dsi2.c` 只写 DSI2 host 寄存器，通过 `plat_data->phy_ops` 请求 lane rate、接口宽度、LP/HS 边界和 power transition，不知道 PHY 寄存器布局。
+- `dw-mipi-dsi2-rockchip.c` 是翻译层。它根据 mode、pixel format、lane 数计算 `lane_mbps`，调用 `phy_mipi_dphy_get_default_config()` 生成标准 D-PHY 配置，并把配置转换为 DSI2 host timing。
+- `phy-rockchip-inno-dsidphy.c` 是 PHY provider。它保存 `phy_configure_opts_mipi_dphy`，按 PLL rate 选择 Inno timing table，换算为硬件 counter，编程 PLL、clock/data lane 和 turnaround 参数。
+
+因此 `get_timing()` 的结果不是 PHY 寄存器配置。它只用于 DSI2 host 的 `DSI2_PHY_LP2HS_MAN_CFG` 和 `DSI2_PHY_HS2LP_MAN_CFG`；真正的 PHY 寄存器写入发生在后续 `phy_power_on()` 的 provider 回调中。
+
+## 11. PHY 时序数据流
+
+```mermaid
+flowchart TD
+    A[adjusted mode + lanes + format] --> B[get_lane_mbps]
+    B --> C[phy_mipi_dphy_get_default_config]
+    C --> D[phy_opts.mipi_dphy]
+    D --> E[get_timing]
+    E --> F[DSI2 host LP2HS/HS2LP counters]
+    D --> G[phy_configure]
+    G --> H[inno_dsidphy.dphy_cfg]
+    H --> I[power_on: select table and calculate counters]
+    I --> J[Inno D-PHY PLL/timing/lane registers]
+```
+
+`phy_opts` 是一次 mode set 的中间结果，连接了两个硬件模块：同一组标准 D-PHY timing 输入，一份被 glue 聚合给 DSI2 host，另一份被 Inno PHY 细化成各个 lane 的寄存器字段。

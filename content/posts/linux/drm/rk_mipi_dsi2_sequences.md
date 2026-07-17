@@ -4,9 +4,6 @@ draft = true
 title = '时序分析'
 +++
 
-
-# 时序分析
-
 ## 1. 总体时序视角
 
 这套驱动最有代表性的运行场景有五个：
@@ -337,3 +334,72 @@ generic core remove：
 这份驱动的时序设计可以概括成一句话：
 
 “先把 DSI host 作为 MIPI endpoint 建起来，再在下游 attach 后把它变成 DRM bridge，最后在 atomic pre_enable 中完成硬件上电和 command-ready，再进入 video 或 data-stream 工作态。”
+
+## 9. PHY 配置与上电时序
+
+`dw_mipi_dsi2_mode_set()` 是 controller、Rockchip glue 和 PHY provider 的交汇点。调用关系如下：
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant CORE as dw_mipi_dsi2.c
+    participant RK as dw-mipi-dsi2-rockchip.c
+    participant PHYFW as PHY framework
+    participant INNO as inno-dsidphy
+    participant HOST as DSI2 host registers
+    participant PPHY as Inno PHY registers
+
+    CORE->>RK: get_lane_mbps(mode, flags, lanes, format)
+    RK->>RK: phy_mipi_dphy_get_default_config(lane_mbps * 1000, lanes, format)
+    RK-->>CORE: lane_mbps; phy_opts.mipi_dphy prepared
+    CORE->>RK: get_interface(lane_mbps)
+    RK-->>CORE: 16-bit PPI, D-PHY
+    CORE->>RK: get_timing(lane_mbps)
+    RK->>RK: data_lp2hs = round((lpx + hs_prepare + hs_zero) * 2^16 / UI)
+    RK->>RK: data_hs2lp = round((hs_trail + hs_exit) * 2^16 / UI)
+    RK-->>CORE: DSI2 PHY timing
+    CORE->>HOST: write PHY_MODE/CLK and LP2HS/HS2LP
+    CORE->>RK: power_on()
+    RK->>PHYFW: phy_set_mode(MIPI_DPHY)
+    RK->>PHYFW: phy_configure(phy_opts)
+    PHYFW->>INNO: inno_dsidphy_configure()
+    INNO->>INNO: copy opts.mipi_dphy to dphy_cfg
+    RK->>PHYFW: phy_power_on()
+    PHYFW->>INNO: inno_dsidphy_power_on()
+    INNO->>INNO: enable clocks and reset/PLL startup
+    INNO->>INNO: select timing table by PLL rate
+    INNO->>INNO: convert ns values to byte/escape-clock counters
+    INNO->>PPHY: write LPX, HS prepare/zero/trail, clock and TA fields
+    INNO->>PPHY: enable clock lane and data lanes
+    CORE->>HOST: configure TX options, power up, command mode, IPI timing
+```
+
+### 9.1 两套 timing 的含义
+
+`dw_mipi_dsi2_phy_get_timing()` 将标准 D-PHY timing 聚合为 host 侧的状态切换窗口：
+
+```text
+UI = round(1 second / (lane_mbps / 16))
+data_lp2hs = round((lpx + hs_prepare + hs_zero) * 2^16 / UI)
+data_hs2lp = round((hs_trail + hs_exit) * 2^16 / UI)
+```
+
+这两个值由 `dw-mipi-dsi2.c` 写入 `DSI2_PHY_LP2HS_MAN_CFG` 和 `DSI2_PHY_HS2LP_MAN_CFG`。它们描述 DSI2 host 在 PPI/控制器侧等待多久，不替代 PHY 内部对 clock lane、data lane 和 turnaround 的细粒度配置。
+
+### 9.2 Inno PHY 内部换算
+
+`inno_dsidphy_mipi_mode_enable()` 根据当前 PLL rate 得到 `t_txbyteclkhs` 和 `t_txclkesc`，然后对 `dphy_cfg` 的纳秒字段做向上取整。例如：
+
+- `clk_post` 按 `t_txbyteclkhs` 换算；`clk_pre` 按 byte/bit 相关单位换算。
+- `ta_go`、`ta_sure`、`ta_get` 按 escape clock 换算；源码中的 `ta_get` 对应协议语义中的 turnaround wait。
+- `lpx`、`hs_prepare`、`hs_zero`、`hs_trail` 等写入 PHY 的 lane timing counter；其中速率相关的默认值来自 1/1.5/2.5 GHz timing table。
+
+PHY 侧的 `hs_zero` 还区分 clock lane 和 data lane，而 DSI2 host 侧只有聚合的 data LP/HS transition timing。这是两个 timing 层级不同、不能直接逐字段对照的根本原因。
+
+### 9.3 上电顺序的约束
+
+controller 先写 host 侧 PHY mode 和 transition timing，再调用 `phy_power_on()`，随后才完成 DSI2 `POWER_UP`、command mode 和 IPI 配置。这样做保证：
+
+- DSI2 发送初始 command 前，外部 PHY 已经完成 PLL lock 和 lane enable。
+- PHY provider 使用的是本次 mode set 已保存的 `dphy_cfg`，而不是上一次模式的配置。
+- video/data-stream 切换发生在 host 与外部 PHY 都完成初始化之后。
