@@ -73,3 +73,27 @@ LP-10 (Mark-1, 持续 TWAKEUP)
    ↓
 LP-11 (Stop)
 ```
+## 2.1 continue clock ulps/non-ulps 波形
+1. 连续时钟，使能ulps
+
+![cont-datalane-ulps](./cont-datalane-ulps.jpg)
+
+Data Lane 只在真正传输数据时进入 HS，帧与帧之间会退出 HS 回到 LP-00 等待下一帧。
+
+2. 连续时钟，去使能 ulps
+
+![cont-datalane-disulps](./cont-datalane-disulps.jpg)
+
+在 MIPI D-PHY Continuous Clock（连续时钟）模式 下，Clock Lane 在整个 Video Stream 期间基本保持 HS 状态，而 Data Lane 只在真正传输数据时进入 HS，帧与帧之间会退出 HS 回到 LP-11 等待下一帧。
+
+## 2.2 non-continue clock ulps/non-ulps 波形
+
+1. 非连续时钟，使能ulps
+
+![non_cont-datalane-ulps](./non_cont-datalane-ulps.jpg)
+
+2. 连续时钟，去使能ulps
+
+
+![non_cont-datalane-disulps](./non_cont-datalane-disulps.jpg)
+
