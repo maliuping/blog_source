@@ -1,6 +1,6 @@
 +++
 date = '2026-08-01T11:52:02+08:00'
-draft = true
+draft = false
 title = '原型验证的核心价值'
 categories = ["Thoughts"]
 tags = ["FPGA"]
