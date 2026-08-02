@@ -19,13 +19,13 @@ SPI \(Serial Peripheral Interface\) 最初是 Motorola 提出的4线同步串行
 
 标准SPI通常就称SPI，它是一种串行外设接口规范，有4根引脚信号：sclk , cs, mosi, miso
 
-![image\.png](图片和附件/image%2012.png)
+![image\.png](./image_12.png)
 
 ### **2\.1\.2 Dual SPI**
 
 针对SPI Flash而言，不是针对所有SPI外设。对于SPI Flash，全双工并不常用，因此扩展了mosi和miso的用法，让它们工作在半双工，用以加倍数据传输。也就是对于Dual SPI Flash，可以发送一个命令字节进入dual mode，这样mosi变成SIO0（serial io 0），miso变成SIO1（serial io 1）,这样一个时钟周期内就能传输2个bit数据，加倍了数据传输。
 
-![image\.png](图片和附件/image%205.png)
+![image\.png](./image_5.png)
 
 
 
@@ -33,7 +33,7 @@ SPI \(Serial Peripheral Interface\) 最初是 Motorola 提出的4线同步串行
 
 与Dual SPI类似，也是针对SPI Flash，Qual SPI Flash增加了两根I/O线（SIO2,SIO3），目的是一个时钟内传输4个bit。
 
-![image\.png](图片和附件/image%2010.png)
+![image\.png](./image_10.png)
 
 
 
@@ -51,13 +51,13 @@ CPOL=0：空闲状态时，SCLK保持低电平
 
 CPOL=1：空闲状态时，SCLK保持高电平
 
-![image\.png](图片和附件/image%209.png)
+![image\.png](./image_9.png)
 
 
 
 
 
-![image\.png](图片和附件/image%203.png)
+![image\.png](./image_3.png)
 
 
 
@@ -73,11 +73,11 @@ CPHA=1: 数据从第二个时钟边沿开始采集
 
 
 
-![image\.png](图片和附件/image%208.png)
+![image\.png](./image_8.png)
 
 
 
-![image\.png](图片和附件/image%2015.png)
+![image\.png](./image_15.png)
 
 
 
@@ -89,7 +89,7 @@ CPOL = 0：空闲时是低电平，第1个跳变沿是上升沿，第2个跳变�
 
 CPHA = 0：数据在第1个跳变沿（上升沿）采样
 
-![image\.png](图片和附件/image%201.png)
+![image\.png](./image_1.png)
 
 
 
@@ -99,7 +99,7 @@ CPOL = 0：空闲时是低电平，第1个跳变沿是上升沿，第2个跳变�
 
 CPHA = 1：数据在第2个跳变沿（下降沿）采样
 
-![image\.png](图片和附件/image%202.png)
+![image\.png](./image_2.png)
 
 
 
@@ -109,7 +109,7 @@ CPOL = 1：空闲时是高电平，第1个跳变沿是下降沿，第2个跳变�
 
 CPHA = 0：数据在第1个跳变沿（下降沿）采样
 
-![image\.png](图片和附件/image.png)
+![image\.png](./image.png)
 
 
 
@@ -119,7 +119,7 @@ CPOL = 1：空闲时是高电平，第1个跳变沿是下降沿，第2个跳变�
 
 CPHA = 1：数据在第2个跳变沿（上升沿）采样
 
-![image\.png](图片和附件/image%2014.png)
+![image\.png](./image_14.png)
 
 
 
@@ -131,7 +131,7 @@ CPHA = 1：数据在第2个跳变沿（上升沿）采样
 
 ### 3\.1\.1 spi flash操作流程
 
-![image\.png](图片和附件/image%206.png)
+![image\.png](./image_6.png)
 
 ### 3\.1\.2 标准 SPI 指令
 
@@ -175,15 +175,15 @@ W25Q256JV 的 **标准/双/四 SPI 指令集** 包含 48 个基本指令，这�
 
 
 
-![image\.png](图片和附件/image%2013.png)
+![image\.png](./image_13.png)
 
-![image\.png](图片和附件/image%204.png)
+![image\.png](./image_4.png)
 
 ### 3.2.1 **读\(03H\)协议解析**
 
 
 
-![image\.png](图片和附件/image%207.png)
+![image\.png](./image_7.png)
 
 读数据的过程，同样也是先 CS 拉低，在写入读数据的指令（0x03），接着跟 24\-bit 的地址信息。然后一直发送 Dummy Data，同时读到指定的数据到 BUFFER
 
@@ -193,7 +193,7 @@ W25Q256JV 的 **标准/双/四 SPI 指令集** 包含 48 个基本指令，这�
 
 
 
-![image\.png](图片和附件/image%2011.png)
+![image\.png](./image_11.png)
 
 
 
