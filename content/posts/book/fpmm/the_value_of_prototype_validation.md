@@ -1,7 +1,7 @@
 +++
 date = '2026-08-01T11:52:02+08:00'
 draft = false
-title = '原型验证的核心价值'
+title = '原型验证的核心价值-2'
 categories = ["book"]
 tags = ["Thoughts"]
 +++

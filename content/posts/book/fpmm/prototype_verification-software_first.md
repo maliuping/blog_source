@@ -1,7 +1,7 @@
 +++
 date = '2026-08-04T13:11:39+08:00'
 draft = false
-title = '芯片原型验证与软件先行战略'
+title = '芯片原型验证与软件先行战略-3'
 categories = ["book"]
 tags = ["Thoughts"]
 +++
