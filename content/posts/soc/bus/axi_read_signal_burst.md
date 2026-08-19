@@ -2,6 +2,8 @@
 date = '2026-08-19T20:20:11+08:00'
 draft = false
 title = 'AXI Read Signal 中 Burst 的理解'
+categories = ["Bus"]
+tags = ["AXI"]
 +++
 
 ## 1. Burst 是什么
