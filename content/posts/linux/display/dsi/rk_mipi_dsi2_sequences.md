@@ -1,7 +1,7 @@
 +++
 date = '2026-07-09T19:27:34+08:00'
 draft = true
-title = '时序分析'
+title = 'rk mipi dsi2 时序分析'
 +++
 
 ## 1. 总体时序视角
@@ -351,7 +351,7 @@ sequenceDiagram
 
     CORE->>RK: get_lane_mbps(mode, flags, lanes, format)
     RK->>RK: phy_mipi_dphy_get_default_config(lane_mbps * 1000, lanes, format)
-    RK-->>CORE: lane_mbps; phy_opts.mipi_dphy prepared
+    RK-->>CORE: phy_opts.mipi_dphy
     CORE->>RK: get_interface(lane_mbps)
     RK-->>CORE: 16-bit PPI, D-PHY
     CORE->>RK: get_timing(lane_mbps)

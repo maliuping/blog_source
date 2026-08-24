@@ -1,7 +1,7 @@
 +++
 date = '2026-07-02T19:27:34+08:00'
 draft = true
-title = '数据结构分析'
+title = 'rk mipi dsi2 数据结构分析'
 +++
 
 ## 1. 对象总览

@@ -23,7 +23,7 @@ ppi(phy protocol interface)用于实现phy lane mode和controller之间的连接
 | TxWordClkHS                 | O        |            | 高速传输字时钟。该信号用于同步高速传输时钟域中的 PPI 信号, 建议所有传输Lane 模块共享一个 TxWordClkHS 信号 |
 | TxDataHS\[7:0\]             | I        |            | 高速传输数据总线宽度                                                                                      |
 | TxWordValidHS\[0\]          | I        |            | 高速发送字数据有效                                                                                        |
-|                             |          |            |                                                                                                           |
+| TxRequestHs                 |          |            |                                                                                                           |
 |                             |          |            |                                                                                                           |
 |                             |          |            |                                                                                                           |
 |                             |          |            |                                                                                                           |

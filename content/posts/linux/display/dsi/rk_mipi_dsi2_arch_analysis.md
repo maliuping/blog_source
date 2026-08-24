@@ -28,7 +28,7 @@ title = 'rk mipi dsi2 架构分析'
 它的职责切分非常明确：
 
 - 通用 core 只关心“如何驱动 DWC DSI2 IP”。
-- Rockchip glue 只关心“如何把这个 IP 放进 Rockchip 显示管线”。
+- Rockchip glue 只关心“如何把这个 IP 放进 Rockchip 显示pipeline”。
 
 ## 2. 为什么要拆成两层
 
@@ -58,7 +58,7 @@ title = 'rk mipi dsi2 架构分析'
 - 创建 `rockchip_encoder`
 - 把输出模式写进 `rockchip_crtc_state`
 
-这些逻辑和 `rk3576`、`rk3588` 的 SoC 布局、VOP2 管线、GRF 定义直接相关，不适合放到通用 core。
+这些逻辑和 `rk3576`、`rk3588` 的 SoC 布局、VOP2 pipeline、GRF 定义直接相关，不适合放到通用 core。
 
 ## 3. 平台抽象契约
 
