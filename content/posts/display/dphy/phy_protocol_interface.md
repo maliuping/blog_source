@@ -1,6 +1,6 @@
 +++
 date = '2026-08-01T14:39:17+08:00'
-draft = true
+draft = false
 title = 'phy protocol interface'
 categories = ["Display"]
 tags = ["DPHY"]
