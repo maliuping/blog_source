@@ -54,6 +54,12 @@ url = "/tags/"
 weight = 30
 
 [[menu.main]]
+identifier = "categories"
+name = "分类"
+url = "/categories/"
+weight = 35
+
+[[menu.main]]
 identifier = "about"
 name = "关于"
 url = "/about/"
