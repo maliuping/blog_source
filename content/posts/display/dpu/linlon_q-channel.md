@@ -3,7 +3,7 @@ date = '2026-10-12T11:46:13+08:00'
 draft = false
 title = 'Linlon q-channel'
 categories = ["SOC"]
-tags = ["SOC", "DPU"]
+tags = ["Low Power", "DPU"]
 +++
 
 在linlon-d6 显示处理器中，**Q-Channel** 是遵循 AMBA 标准的硬件低功耗握手接口协议。它用于 DPU 与 SOC 外部的时钟/电源控制器之间进行自动化、安全的**外部时钟门控（Clock Gating）**与**电源门控（Power Gating）**握手，确保 DPU 在空闲时能切断时钟或电源以降低功耗，而在有总线访问或显示任务时能被安全唤醒。
