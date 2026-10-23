@@ -1,6 +1,6 @@
 +++
 date = '2026-10-24T1:02:13+08:00'
-draft = true
+draft = false
 title = 'Linlon q-channel 软件配合说明'
 categories = ["Linux"]
 tags = ["Low Power", "DPU"]
